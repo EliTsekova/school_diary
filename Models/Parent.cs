@@ -9,7 +9,7 @@ namespace school_diary.Models
         public int Id { get; set; }
 
         [ForeignKey("User")]
-        public int UserId { get; set; }
+        public string UserId { get; set; }
         public User User { get; set; }
 
         public ICollection<ParentStudent> ParentStudents { get; set; }

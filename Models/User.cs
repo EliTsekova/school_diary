@@ -1,5 +1,7 @@
-﻿    using System.ComponentModel.DataAnnotations;
-    using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace school_diary.Models
 {
     public enum Role
@@ -11,32 +13,22 @@ namespace school_diary.Models
         Director
     }
 
-    public class User
+    public class User : IdentityUser
     {
-        [Key]
-        public int Id { get; set; }
+        [Required]
+        [StringLength(100)]
+        public string FirstName { get; set; } = null!;
 
         [Required]
         [StringLength(100)]
-        public string FirstName { get; set; }
-
-        [Required]
-        [StringLength(100)]
-        public string LastName { get; set; }
-
-        [Required]
-        [StringLength(255)]
-        public string Email { get; set; }
-
-        public string PasswordHash { get; set; }
+        public string LastName { get; set; } = null!;
 
         [Required]
         public Role Role { get; set; }
 
-        public Teacher Teacher { get; set; }
-        public Parent Parent { get; set; }
-        public Student Student { get; set; }
-        public Director Director { get; set; }
+        public Teacher Teacher { get; set; } = null!;
+        public Parent Parent { get; set; } = null!;
+        public Student Student { get; set; } = null!;
+        public Director Director { get; set; } = null!;
     }
-
 }
