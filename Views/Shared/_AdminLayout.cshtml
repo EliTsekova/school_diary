@@ -1,0 +1,266 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] – Admin Panel</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+          rel="stylesheet" />
+
+    <style>
+        body {
+            margin: 0;
+            overflow-x: hidden;
+            background-color: #f5f7fb;
+        }
+
+        #sidebar {
+            width: 250px;
+            min-width: 250px;
+            transition: all .3s ease;
+        }
+
+        #sidebar.collapsed {
+            transform: translateX(-100%);
+            position: absolute;
+            z-index: 1000;
+            height: 100%;
+        }
+
+        main {
+            overflow-y: auto;
+            width: 100%;
+        }
+
+        .card-form {
+            background-color: #e6f0fa;
+            border-radius: 14px;
+            border: none;
+        }
+
+        .nav-link {
+            border-radius: 8px;
+            transition: 0.2s ease;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255,255,255,0.15);
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .stats-card {
+            min-width: 220px;
+            max-width: 260px;
+            width: 100%;
+            border-radius: 14px;
+        }
+
+        .menu-card {
+            min-width: 180px;
+            max-width: 220px;
+            width: 100%;
+            border-radius: 12px;
+        }
+
+        #btnToggle {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="d-flex vh-100">
+
+    <nav id="sidebar" class="bg-primary text-white p-3 collapsed">
+
+        <div class="mb-4 text-center">
+
+            <a asp-controller="AdminUi"
+               asp-action="Index">
+
+                <img src="~/images/logo_school_diary.png"
+                     alt="SchoolDiary"
+                     style="height:50px;" />
+
+            </a>
+
+        </div>
+
+        <ul class="nav flex-column">
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Students">
+
+                    <i class="fas fa-user-graduate me-2"></i>
+                    Students
+
+                </a>
+
+            </li>
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Teachers">
+
+                    <i class="fas fa-chalkboard-teacher me-2"></i>
+                    Teachers
+
+                </a>
+
+            </li>
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Parents">
+
+                    <i class="fas fa-users me-2"></i>
+                    Parents
+
+                </a>
+
+            </li>
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Directors">
+
+                    <i class="fas fa-user-tie me-2"></i>
+                    Directors
+
+                </a>
+
+            </li>
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Schools">
+
+                    <i class="fas fa-school me-2"></i>
+                    Schools
+
+                </a>
+
+            </li>
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Subjects">
+
+                    <i class="fas fa-book me-2"></i>
+                    Subjects
+
+                </a>
+
+            </li>
+
+            <li class="nav-item mb-2">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Curricula">
+
+                    <i class="fas fa-list-alt me-2"></i>
+                    Curriculum
+
+                </a>
+
+            </li>
+
+            <li class="nav-item">
+
+                <a class="nav-link text-white"
+                   asp-controller="AdminUi"
+                   asp-action="Statistics">
+
+                    <i class="fas fa-chart-line me-2"></i>
+                    Statistics
+
+                </a>
+
+            </li>
+
+        </ul>
+
+    </nav>
+
+    <main class="flex-fill p-4">
+
+        <div class="dashboard-container">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+
+                <button id="btnToggle"
+                        class="btn btn-outline-secondary">
+
+                    <i class="fas fa-bars"></i>
+
+                </button>
+
+                <form asp-area="Identity"
+                      asp-page="/Account/Logout"
+                      method="post"
+                      onsubmit="return confirm('Are you sure you want to log out?');">
+
+                    <input type="hidden"
+                           name="returnUrl"
+                           value="/Identity/Account/Login" />
+
+                    <button type="submit"
+                            class="btn btn-outline-danger">
+
+                        <i class="fas fa-sign-out-alt me-1"></i>
+                        Logout
+
+                    </button>
+
+                </form>
+
+            </div>
+
+            @RenderBody()
+
+            @RenderSection("Scripts", required: false)
+
+        </div>
+
+    </main>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    const btn = document.getElementById('btnToggle');
+    const sidebar = document.getElementById('sidebar');
+
+    btn.addEventListener('click', () => {
+        sidebar.classList.toggle('collapsed');
+    });
+</script>
+
+</body>
+</html>
