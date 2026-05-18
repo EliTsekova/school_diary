@@ -1,6 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace school_diary.Models
 {
@@ -9,19 +8,24 @@ namespace school_diary.Models
         [Key]
         public int Id { get; set; }
 
-        [ForeignKey("User")]
-        public string UserId { get; set; }
-        public User User { get; set; }
+        [Required]
+        [ForeignKey(nameof(User))]
+        public string UserId { get; set; } = null!;
 
-        [ForeignKey("School")]
-        public int SchoolId { get; set; }
-        public School School { get; set; }
+        public User User { get; set; } = null!;
 
-        public string ClassName { get; set; }
+        [ForeignKey(nameof(School))]
+        public int? SchoolId { get; set; }
 
-        public ICollection<ParentStudent> ParentStudents { get; set; }
-        public ICollection<Grade> Grades { get; set; }
-        public ICollection<Absence> Absences { get; set; }
+        public School? School { get; set; }
+
+        [ForeignKey(nameof(Class))]
+        public int? ClassId { get; set; }
+
+        public Class? Class { get; set; }
+
+        public ICollection<ParentStudent> ParentStudents { get; set; } = new List<ParentStudent>();
+        public ICollection<Grade> Grades { get; set; } = new List<Grade>();
+        public ICollection<Absence> Absences { get; set; } = new List<Absence>();
     }
-
 }

@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.IO;
 
 namespace school_diary.Models
 {
@@ -9,15 +8,18 @@ namespace school_diary.Models
         public int Id { get; set; }
 
         [Required]
-        public string Name { get; set; }
+        [StringLength(100, MinimumLength = 2)]
+        public string Name { get; set; } = null!;
 
         [Required]
-        public string Address { get; set; }
+        [StringLength(200, MinimumLength = 5)]
+        public string Address { get; set; } = null!;
 
-        public ICollection<Teacher> Teachers { get; set; }
-        public ICollection<Student> Students { get; set; }
-        public Director Director { get; set; }
+        public ICollection<Teacher> Teachers { get; set; } = new List<Teacher>();
+        public ICollection<Student> Students { get; set; } = new List<Student>();
+
+        public ICollection<Class> Classes { get; set; } = new List<Class>();
+
+        public Director? Director { get; set; }
     }
-
-
 }
