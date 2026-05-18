@@ -12,11 +12,67 @@ html {
   box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
-html {
-  position: relative;
-  min-height: 100%;
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url('/images/desktop.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    font-family: 'Segoe UI', sans-serif;
 }
 
-body {
-  margin-bottom: 60px;
+.diary-wrapper {
+    position: relative;
+    width: 500px;
+    margin: 5rem auto;
 }
+
+.diary-image {
+    width: 100%;
+    display: block;
+}
+
+.diary-content {
+    position: absolute;
+    top: 18%;
+    left: 10%;
+    right: 10%;
+    text-align: center;
+}
+
+    .diary-content h1 {
+        font-size: 1.8rem;
+        font-weight: bold;
+        margin-bottom: 0.5rem;
+    }
+
+    .diary-content p {
+        font-size: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+    form input {
+        padding: 0.5rem;
+        border: none;
+        border-bottom: 2px solid #444;
+        background: transparent;
+        font-size: 1rem;
+        outline: none;
+    }
+
+    form button {
+        margin-top: 1rem;
+        padding: 0.5rem;
+        background-color: #2a5caa;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
