@@ -1,0 +1,701 @@
+﻿@using school_diary.Dtos
+@using school_diary.Models
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Director Dashboard";
+
+    var director = ViewBag.Director as Director;
+    var school = ViewBag.School as SchoolDto;
+
+    var directorName = $"{director?.User?.FirstName} {director?.User?.LastName}".Trim();
+    if (string.IsNullOrWhiteSpace(directorName))
+    {
+        directorName = "Director";
+    }
+
+    var directorEmail = director?.User?.Email ?? "";
+
+    var students = ViewBag.Students as List<Student> ?? new();
+    var teachers = ViewBag.Teachers as List<Teacher> ?? new();
+    var parents = ViewBag.Parents as List<Parent> ?? new();
+
+    var subjectAverages = ViewBag.SubjectAverages as IReadOnlyList<SubjectAverageDto> ?? new List<SubjectAverageDto>();
+    var teacherAverages = ViewBag.TeacherAverages as IReadOnlyList<TeacherAverageDto> ?? new List<TeacherAverageDto>();
+    var classAverages = ViewBag.ClassAverages as IReadOnlyList<ClassAverageDto> ?? new List<ClassAverageDto>();
+    var classAbsences = ViewBag.ClassAbsences as IReadOnlyList<ClassAbsenceDto> ?? new List<ClassAbsenceDto>();
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Director Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            font-family: "Segoe UI", sans-serif;
+            color: #0f172a;
+            overflow-x: hidden;
+        }
+
+        .layout {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background: #073d6b;
+            padding: 20px 14px;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            transition: .25s;
+            z-index: 1000;
+            color: white;
+        }
+
+        .sidebar.collapsed {
+            left: -250px;
+        }
+
+        .main {
+            flex: 1;
+            margin-left: 0;
+            transition: .25s;
+        }
+
+        .main.with-sidebar {
+            margin-left: 250px;
+        }
+
+        .brand {
+            margin-bottom: 28px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding-top: 8px;
+        }
+
+        .brand img {
+            max-width: 170px;
+            height: auto;
+            display: block;
+        }
+
+        .nav-title {
+            font-size: 12px;
+            color: rgba(255,255,255,.65);
+            font-weight: 700;
+            margin: 20px 10px 10px;
+        }
+
+        .side-link {
+            display: block;
+            padding: 12px 14px;
+            border-radius: 10px;
+            text-decoration: none;
+            color: white;
+            font-weight: 700;
+            margin-bottom: 6px;
+            transition: .2s;
+        }
+
+        .side-link:hover {
+            background: #1688ff;
+            color: white;
+        }
+
+        .topbar {
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            gap: 14px;
+        }
+
+        .toggle-btn {
+            border: 0;
+            background: #f1f5f9;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 900;
+        }
+
+        .content {
+            padding: 35px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page-title {
+            font-size: 36px;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            margin-bottom: 25px;
+            font-size: 17px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 22px;
+        }
+
+        .card-panel {
+            background: white;
+            border: 1px solid #dbe3ef;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,.04);
+            margin-bottom: 22px;
+        }
+
+        .small-card {
+            height: 360px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stats-card {
+            height: 310px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .profile-card {
+            padding: 24px;
+        }
+
+        .table-scroll {
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .card-header-custom {
+            padding: 18px 22px;
+            font-weight: 900;
+            border-bottom: 1px solid #edf2f7;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table th {
+            background: #f8fafc;
+            font-size: 13px;
+            text-transform: uppercase;
+            color: #475569;
+            padding: 14px 18px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .table td {
+            padding: 14px 18px;
+            vertical-align: middle;
+        }
+
+        .grade-good {
+            color: #059669;
+            font-weight: 900;
+        }
+
+        .grade-bad {
+            color: #ef4444;
+            font-weight: 900;
+        }
+
+        .badge-class {
+            background: #dbeafe;
+            color: #1d4ed8;
+            padding: 5px 10px;
+            border-radius: 8px;
+            font-weight: 800;
+        }
+
+        .absence-bad {
+            color: #dc2626;
+            font-weight: 900;
+        }
+
+        .logout-btn {
+            border-radius: 10px;
+            font-weight: 700;
+        }
+
+        @@media (max-width: 1100px) {
+            .grid-3,
+            .grid-2 {
+                grid-template-columns: 1fr;
+            }
+
+            .main,
+            .main.with-sidebar {
+                margin-left: 0;
+            }
+
+            .sidebar {
+                left: -250px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <aside id="sidebar" class="sidebar collapsed">
+        <div class="brand">
+            <img src="~/images/logo_school_diary.png" alt="School Diary" />
+        </div>
+
+        <div class="nav-title">NAVIGATION</div>
+
+        <a href="#" class="side-link">
+            <i class="fa-solid fa-house me-2"></i> Home
+        </a>
+
+        <a href="#students" class="side-link">
+            <i class="fa-solid fa-users me-2"></i> Students
+        </a>
+
+        <a href="#teachers" class="side-link">
+            <i class="fa-solid fa-chalkboard-teacher me-2"></i> Teachers
+        </a>
+
+        <a href="#parents" class="side-link">
+            <i class="fa-solid fa-user-group me-2"></i> Parents
+        </a>
+
+        <a href="#success" class="side-link">
+            <i class="fa-solid fa-chart-line me-2"></i> Academic Performance
+        </a>
+
+        <a href="#profile" class="side-link">
+            <i class="fa-solid fa-user-gear me-2"></i> Edit Profile
+        </a>
+    </aside>
+
+    <main id="main" class="main">
+        <div class="topbar">
+            <button id="toggleSidebar" class="toggle-btn" type="button">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+            <form asp-area="Identity"
+                  asp-page="/Account/Logout"
+                  asp-route-returnUrl="/Identity/Account/Login"
+                  method="post"
+                  class="m-0">
+                @Html.AntiForgeryToken()
+
+                <button class="btn btn-outline-danger logout-btn"
+                        onclick="return confirm('Are you sure you want to log out?')">
+                    <i class="fa-solid fa-right-from-bracket me-1"></i>
+                    Logout
+                </button>
+            </form>
+        </div>
+
+        <div class="content">
+
+            @if (TempData["Success"] != null)
+            {
+                <div class="alert alert-success">@TempData["Success"]</div>
+            }
+
+            @if (TempData["Error"] != null)
+            {
+                <div class="alert alert-danger">@TempData["Error"]</div>
+            }
+
+            <h1 class="page-title">📋 Director Dashboard</h1>
+
+            <div class="subtitle">
+                👋 Welcome, @directorName!
+            </div>
+
+            <div class="card-panel">
+                <div class="card-header-custom">
+                    🏫 School
+                </div>
+
+                <table class="table">
+                    <tbody>
+                    <tr>
+                        <td><strong>@school?.Name</strong></td>
+                        <td>@school?.Address</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid-3">
+                <div class="card-panel small-card" id="students">
+                    <div class="card-header-custom">
+                        👨‍🎓 Students
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Class</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @if (students.Any())
+                            {
+                                foreach (var s in students)
+                                {
+                                    <tr>
+                                        <td>@s.User.FirstName @s.User.LastName</td>
+                                        <td>@s.User.Email</td>
+                                        <td>
+                                            <span class="badge-class">
+                                                @s.Class?.Name
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="3">No students available.</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel small-card" id="teachers">
+                    <div class="card-header-custom">
+                        👨‍🏫 Teachers
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @if (teachers.Any())
+                            {
+                                foreach (var t in teachers)
+                                {
+                                    <tr>
+                                        <td>@t.User.FirstName @t.User.LastName</td>
+                                        <td>@t.User.Email</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2">No teachers available.</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel small-card" id="parents">
+                    <div class="card-header-custom">
+                        👪 Parents
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Email</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @if (parents.Any())
+                            {
+                                foreach (var p in parents)
+                                {
+                                    <tr>
+                                        <td>@p.User.FirstName @p.User.LastName</td>
+                                        <td>@p.User.Email</td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="2">No parents available.</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid-2" id="success">
+                <div class="card-panel stats-card">
+                    <div class="card-header-custom">
+                        📚 Average Grade by Subject
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Subject</th>
+                                <th>Average</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @foreach (var item in subjectAverages)
+                            {
+                                var css = item.AverageGrade >= 5 ? "grade-good" : "grade-bad";
+
+                                <tr>
+                                    <td>@item.SubjectName</td>
+                                    <td class="@css">
+                                        @item.AverageGrade.ToString("F2")
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel stats-card">
+                    <div class="card-header-custom">
+                        📊 Average Grade by Teacher
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Teacher</th>
+                                <th>Average</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @foreach (var item in teacherAverages)
+                            {
+                                var css = item.AverageGrade >= 5 ? "grade-good" : "grade-bad";
+
+                                <tr>
+                                    <td>@item.TeacherName</td>
+                                    <td class="@css">
+                                        @item.AverageGrade.ToString("F2")
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel stats-card">
+                    <div class="card-header-custom">
+                        🏫 Average Grade by Class
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Average</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @foreach (var item in classAverages)
+                            {
+                                var css = item.AverageGrade >= 5 ? "grade-good" : "grade-bad";
+
+                                <tr>
+                                    <td>
+                                        <span class="badge-class">
+                                            @item.ClassName
+                                        </span>
+                                    </td>
+
+                                    <td class="@css">
+                                        @item.AverageGrade.ToString("F2")
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-panel stats-card">
+                    <div class="card-header-custom">
+                        ❌ Absences by Class
+                    </div>
+
+                    <div class="table-scroll">
+                        <table class="table">
+                            <thead>
+                            <tr>
+                                <th>Class</th>
+                                <th>Absence Count</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                            @foreach (var item in classAbsences)
+                            {
+                                <tr>
+                                    <td>
+                                        <span class="badge-class">
+                                            @item.ClassName
+                                        </span>
+                                    </td>
+
+                                    <td class="absence-bad">
+                                        @item.AbsenceCount
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-panel profile-card" id="profile">
+                <h3 class="fw-bold mb-3">
+                    <i class="fa-solid fa-user-gear me-2"></i>
+                    Edit Profile
+                </h3>
+
+                <form asp-controller="DirectorUI"
+                      asp-action="EditProfile"
+                      method="post"
+                      class="row g-3 mb-4">
+                    @Html.AntiForgeryToken()
+
+                    <div class="col-md-8">
+                        <label class="form-label">Email</label>
+                        <input name="email"
+                               type="email"
+                               value="@directorEmail"
+                               class="form-control"
+                               required />
+                    </div>
+
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Save Email
+                        </button>
+                    </div>
+                </form>
+
+                <hr />
+
+                <h5 class="fw-bold mt-4">Change Password</h5>
+
+                <form asp-controller="DirectorUI"
+                      asp-action="ChangePassword"
+                      method="post"
+                      class="row g-3 mt-2">
+                    @Html.AntiForgeryToken()
+
+                    <div class="col-md-6">
+                        <label class="form-label">New Password</label>
+                        <input name="newPassword"
+                               type="password"
+                               class="form-control"
+                               minlength="6"
+                               required />
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Confirm New Password</label>
+                        <input name="confirmPassword"
+                               type="password"
+                               class="form-control"
+                               minlength="6"
+                               required />
+                    </div>
+
+                    <div class="col-md-4">
+                        <button type="submit" class="btn btn-primary w-100">
+                            Change Password
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+</div>
+
+<script>
+    const toggleBtn = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const main = document.getElementById("main");
+
+    toggleBtn.addEventListener("click", function () {
+        sidebar.classList.toggle("collapsed");
+        sidebar.classList.toggle("show");
+        main.classList.toggle("with-sidebar");
+    });
+</script>
+
+</body>
+</html>
