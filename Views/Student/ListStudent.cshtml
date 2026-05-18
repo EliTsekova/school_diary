@@ -1,0 +1,52 @@
+﻿@model IEnumerable<school_diary.Dtos.StudentDto>
+
+@{
+    ViewData["Title"] = "Students";
+}
+
+<h2>@ViewData["Title"]</h2>
+
+<a asp-action="AddStudent" class="btn btn-primary mb-3">Add Student</a>
+
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>School</th>
+        <th>Class</th>
+        <th></th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var s in Model)
+    {
+        <tr>
+            <td>@s.FullName</td>
+            <td>@s.Email</td>
+            <td>@s.SchoolId</td>
+            <td>@s.ClassName</td>
+            <td>
+                <a asp-action="EditStudent"
+                   asp-route-id="@s.Id"
+                   class="btn btn-sm btn-warning">
+                    Edit
+                </a>
+
+                <form asp-action="DeleteStudent"
+                      asp-route-id="@s.Id"
+                      method="post"
+                      class="d-inline">
+
+                    <button type="submit"
+                            class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure?');">
+                        Delete
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

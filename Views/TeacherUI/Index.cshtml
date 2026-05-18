@@ -1,0 +1,738 @@
+﻿@using school_diary.Dtos
+@using school_diary.Controllers
+@using school_diary.Models
+
+@{
+    Layout = null;
+    ViewData["Title"] = "Teacher Dashboard";
+
+    var teacher = ViewBag.Teacher as TeacherDto;
+    var students = ViewBag.Students as List<StudentDto> ?? new();
+    var grades = ViewBag.Grades as List<Grade> ?? new();
+    var absences = ViewBag.Absences as List<Absence> ?? new();
+    var subjects = ViewBag.Subjects as List<SubjectDto> ?? new();
+
+    var input = new TeacherUIController.EditProfileInputModel
+    {
+        FullName = teacher?.FullName ?? "",
+        Email = teacher?.Email ?? ""
+    };
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Teacher Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            background: #f3f7fd;
+            font-family: "Segoe UI", sans-serif;
+            overflow-x: hidden;
+        }
+
+        .sidebar {
+            width: 270px;
+            min-height: 100vh;
+            background: #073d6b;
+            color: white;
+            position: fixed;
+            left: 0;
+            top: 0;
+            transition: .25s;
+            z-index: 1000;
+        }
+
+        .sidebar.collapsed {
+            left: -270px;
+        }
+
+        .main {
+            margin-left: 0;
+            padding: 35px;
+            transition: .25s;
+        }
+
+        .main.with-sidebar {
+            margin-left: 270px;
+        }
+
+        .page-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .logo-box {
+            padding: 28px 20px 18px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,.08);
+            margin-bottom: 20px;
+        }
+
+        .sidebar-logo {
+            max-width: 180px;
+            width: 100%;
+            height: auto;
+        }
+
+        .menu a,
+        .logout-btn {
+            margin: 8px 20px;
+            padding: 13px 16px;
+            border-radius: 10px;
+            display: block;
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border: 0;
+            background: transparent;
+            width: calc(100% - 40px);
+            text-align: left;
+            transition: .2s;
+        }
+
+        .menu a:hover,
+        .logout-btn:hover {
+            background: #1688ff;
+        }
+
+        .profile-box {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(255,255,255,.08);
+            border-radius: 12px;
+            padding: 14px;
+            font-size: 13px;
+        }
+
+        .top-row {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .toggle-btn {
+            border: 0;
+            background: white;
+            border-radius: 10px;
+            width: 45px;
+            height: 45px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.08);
+        }
+
+        .card-panel {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            overflow: hidden;
+            margin-bottom: 35px;
+        }
+
+        .scroll-box {
+            max-height: 430px;
+            overflow-y: auto;
+        }
+
+        .table thead th {
+            background: #073d6b;
+            color: white;
+            padding: 18px;
+            font-size: 14px;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .table td {
+            padding: 18px;
+            vertical-align: middle;
+        }
+
+        .badge-class {
+            background: #eef3f9;
+            color: #073d6b;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+
+        .section-title {
+            font-weight: 800;
+            margin-top: 35px;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 2px 12px rgba(0,0,0,.06);
+            margin-bottom: 35px;
+        }
+
+        @@media (max-width: 768px) {
+
+            .main,
+            .main.with-sidebar {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .sidebar {
+                left: -270px;
+            }
+
+            .sidebar.show {
+                left: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<aside id="sidebar" class="sidebar collapsed">
+
+    <div class="logo-box">
+        <img src="~/images/logo_school_diary.png"
+             alt="SchoolDiary"
+             class="sidebar-logo" />
+    </div>
+
+    <nav class="menu">
+
+        <a href="#students">
+            <i class="fa-solid fa-users me-2"></i>
+            My Students
+        </a>
+
+        <a href="#grades">
+            <i class="fa-solid fa-star me-2"></i>
+            Grades
+        </a>
+
+        <a href="#absences">
+            <i class="fa-solid fa-calendar-xmark me-2"></i>
+            Absences
+        </a>
+
+        <a href="#profile">
+            <i class="fa-solid fa-user-gear me-2"></i>
+            Edit Profile
+        </a>
+
+        <form asp-area="Identity"
+              asp-page="/Account/Logout"
+              method="post">
+
+            @Html.AntiForgeryToken()
+
+            <button type="submit"
+                    class="logout-btn"
+                    onclick="return confirm('Are you sure you want to log out?')">
+
+                <i class="fa-solid fa-right-from-bracket me-2"></i>
+                Logout
+            </button>
+        </form>
+
+    </nav>
+
+    <div class="profile-box">
+        Logged in as:<br />
+        <strong>@teacher?.FullName</strong>
+    </div>
+
+</aside>
+
+<main id="main" class="main">
+
+    <div class="page-container">
+
+        <div class="top-row">
+            <button id="toggleSidebar" class="toggle-btn">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+        </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert alert-success">@TempData["Success"]</div>
+        }
+
+        @if (TempData["Error"] != null)
+        {
+            <div class="alert alert-danger">@TempData["Error"]</div>
+        }
+
+        @if (TempData["Message"] != null)
+        {
+            <div class="alert alert-info">@TempData["Message"]</div>
+        }
+
+        <section id="students">
+
+            <h2 class="fw-bold">My Students</h2>
+
+            <p class="text-muted">
+                Manage students, grades and attendance for the school year.
+            </p>
+
+            <div class="card-panel scroll-box">
+
+                <table class="table mb-0">
+
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Class</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    @foreach (var s in students)
+                    {
+                        <tr>
+                            <td>@s.FullName</td>
+
+                            <td>@s.Email</td>
+
+                            <td>
+                                <span class="badge-class">@s.ClassName</span>
+                            </td>
+
+                            <td>
+                                <a href="#grades"
+                                   class="btn btn-success btn-sm">
+
+                                    <i class="fa-solid fa-plus me-1"></i>
+                                    Grade
+                                </a>
+
+                                <a href="#absences"
+                                   class="btn btn-warning btn-sm text-white">
+
+                                    <i class="fa-solid fa-calendar-xmark me-1"></i>
+                                    Absence
+                                </a>
+                            </td>
+                        </tr>
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <section id="grades" class="form-card">
+
+            <h4 class="fw-bold mb-3">Add Grade</h4>
+
+            <form asp-controller="TeacherUI"
+                  asp-action="AddGrade"
+                  method="post"
+                  class="row g-3">
+
+                @Html.AntiForgeryToken()
+
+                <div class="col-md-4">
+
+                    <select name="StudentId"
+                            class="form-select"
+                            required>
+
+                        <option value="">Select student</option>
+
+                        @foreach (var s in students)
+                        {
+                            <option value="@s.Id">
+                                @s.FullName - @s.ClassName
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <select name="SubjectId"
+                            class="form-select"
+                            required>
+
+                        <option value="">Select subject</option>
+
+                        @foreach (var subject in subjects)
+                        {
+                            <option value="@subject.Id">
+                                @subject.Name
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+                    <input name="Value"
+                           type="number"
+                           min="2"
+                           max="6"
+                           class="form-control"
+                           placeholder="Grade"
+                           required />
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100">
+                        Add
+                    </button>
+                </div>
+
+            </form>
+
+            <hr />
+
+            <h4 class="fw-bold mb-3">My Grades</h4>
+
+            <div class="scroll-box">
+
+                <table class="table table-bordered mb-0">
+
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Grade</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    @foreach (var g in grades)
+                    {
+                        <tr>
+
+                            <td>@g.Id</td>
+
+                            <td>
+                                @g.Student.User.FirstName
+                                @g.Student.User.LastName
+                            </td>
+
+                            <td>@g.Subject.Name</td>
+
+                            <td>
+
+                                <form asp-controller="TeacherUI"
+                                      asp-action="EditGrade"
+                                      method="post"
+                                      class="d-flex gap-2">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@g.Id" />
+
+                                    <input name="value"
+                                           type="number"
+                                           min="2"
+                                           max="6"
+                                           value="@g.Value"
+                                           class="form-control form-control-sm" />
+
+                                    <button class="btn btn-sm btn-warning">
+                                        Save
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                            <td>@g.CreatedOn.ToString("dd.MM.yyyy")</td>
+
+                            <td>
+
+                                <form asp-controller="TeacherUI"
+                                      asp-action="DeleteGrade"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@g.Id" />
+
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Are you sure you want to delete this grade?')">
+
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <section id="absences" class="form-card">
+
+            <h4 class="fw-bold mb-3">Add Absence</h4>
+
+            <form asp-controller="TeacherUI"
+                  asp-action="AddAbsence"
+                  method="post"
+                  class="row g-3">
+
+                @Html.AntiForgeryToken()
+
+                <div class="col-md-3">
+
+                    <select name="StudentId"
+                            class="form-select"
+                            required>
+
+                        <option value="">Select student</option>
+
+                        @foreach (var s in students)
+                        {
+                            <option value="@s.Id">
+                                @s.FullName - @s.ClassName
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-3">
+
+                    <select name="SubjectId"
+                            class="form-select"
+                            required>
+
+                        <option value="">Select subject</option>
+
+                        @foreach (var subject in subjects)
+                        {
+                            <option value="@subject.Id">
+                                @subject.Name
+                            </option>
+                        }
+
+                    </select>
+
+                </div>
+
+                <div class="col-md-2">
+                    <input name="Date"
+                           type="date"
+                           class="form-control"
+                           required />
+                </div>
+
+                <div class="col-md-2 form-check pt-2">
+
+                    <input name="IsExcused"
+                           type="checkbox"
+                           value="true"
+                           class="form-check-input" />
+
+                    <label class="form-check-label">
+                        Excused
+                    </label>
+
+                </div>
+
+                <div class="col-md-2">
+                    <button class="btn btn-primary w-100">
+                        Add
+                    </button>
+                </div>
+
+            </form>
+
+            <hr />
+
+            <h4 class="fw-bold mb-3">My Absences</h4>
+
+            <div class="scroll-box">
+
+                <table class="table table-bordered mb-0">
+
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Student</th>
+                        <th>Subject</th>
+                        <th>Date</th>
+                        <th>Excused</th>
+                        <th>Actions</th>
+                    </tr>
+                    </thead>
+
+                    <tbody>
+
+                    @foreach (var a in absences)
+                    {
+                        <tr>
+
+                            <td>@a.Id</td>
+
+                            <td>
+                                @a.Student.User.FirstName
+                                @a.Student.User.LastName
+                            </td>
+
+                            <td>@a.Subject.Name</td>
+
+                            <td>@a.Date.ToString("dd.MM.yyyy")</td>
+
+                            <td>
+                                @(a.IsExcused ? "Yes" : "No")
+                            </td>
+
+                            <td>
+
+                                <form asp-controller="TeacherUI"
+                                      asp-action="DeleteAbsence"
+                                      method="post">
+
+                                    @Html.AntiForgeryToken()
+
+                                    <input type="hidden"
+                                           name="id"
+                                           value="@a.Id" />
+
+                                    <button class="btn btn-sm btn-danger"
+                                            onclick="return confirm('Are you sure you want to delete this absence?')">
+
+                                        Delete
+                                    </button>
+
+                                </form>
+
+                            </td>
+
+                        </tr>
+                    }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+        <section id="profile" class="form-card">
+
+            <h2 class="section-title">Edit Profile</h2>
+
+            <p class="text-muted">
+                Update your personal information and password.
+            </p>
+
+            @await Html.PartialAsync("Partial/_EditProfile", input)
+
+            <hr />
+
+            <h5 class="fw-bold mt-4">Change Password</h5>
+
+            <form asp-controller="TeacherUI"
+                  asp-action="ChangePassword"
+                  method="post"
+                  class="row g-3 mt-2">
+
+                @Html.AntiForgeryToken()
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        New Password
+                    </label>
+
+                    <input name="newPassword"
+                           type="password"
+                           class="form-control"
+                           minlength="6" />
+
+                </div>
+
+                <div class="col-md-6">
+
+                    <label class="form-label">
+                        Confirm New Password
+                    </label>
+
+                    <input name="confirmPassword"
+                           type="password"
+                           class="form-control"
+                           minlength="6" />
+
+                </div>
+
+                <div class="col-md-4">
+
+                    <button class="btn btn-primary w-100">
+
+                        <i class="fa-solid fa-floppy-disk me-1"></i>
+
+                        Save Password
+
+                    </button>
+
+                </div>
+
+            </form>
+
+        </section>
+
+    </div>
+
+</main>
+
+<script>
+    const btn = document.getElementById("toggleSidebar");
+    const sidebar = document.getElementById("sidebar");
+    const main = document.getElementById("main");
+
+    btn.addEventListener("click", () => {
+
+        sidebar.classList.toggle("collapsed");
+        sidebar.classList.toggle("show");
+
+        main.classList.toggle("with-sidebar");
+    });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+</body>
+</html>

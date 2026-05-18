@@ -1,0 +1,44 @@
+﻿@{
+    Layout = null;
+}
+@model List<school_diary.Dtos.StudentDto>
+
+@{
+    var grades = ViewData["LastGrades"] as Dictionary<int, string>;
+    var absences = ViewData["AbsenceCounts"] as Dictionary<int, int>;
+}
+
+<table class="table table-bordered table-striped mt-4">
+    <thead class="table-dark">
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Class</th>
+        <th>Last Grade</th>
+        <th>Absences</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var s in Model)
+    {
+        <tr>
+            <td>@s.FullName</td>
+            <td>@s.Email</td>
+            <td>@s.ClassName</td>
+            <td>@(grades?.GetValueOrDefault(s.Id) ?? "–")</td>
+            <td>@(absences?.GetValueOrDefault(s.Id) ?? 0)</td>
+            <td>
+                <a href="/Teacher/Grades/Add?studentId=@s.Id" class="btn btn-sm btn-success">
+                    ➕ Grade
+                </a>
+
+                <a href="/Teacher/Absences/Add?studentId=@s.Id" class="btn btn-sm btn-warning">
+                    ➕ Absence
+                </a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

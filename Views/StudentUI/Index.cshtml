@@ -1,0 +1,429 @@
+﻿@using school_diary.Models
+
+@{
+    Layout = null;
+
+    var student = ViewBag.Student as Student;
+    var curriculum = ViewBag.Curriculum as Curriculum;
+    var grades = ViewBag.Grades as List<Grade> ?? new();
+    var absences = ViewBag.Absences as List<Absence> ?? new();
+
+    var firstName = student?.User?.FirstName ?? "";
+    var lastName = student?.User?.LastName ?? "";
+    var studentName = $"{firstName} {lastName}".Trim();
+    if (string.IsNullOrWhiteSpace(studentName))
+    {
+        studentName = "Student";
+    }
+
+    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Student Portal</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            background: #f4f7fb;
+            font-family: "Segoe UI", sans-serif;
+            color: #111827;
+            margin: 0;
+        }
+
+        .topbar {
+            height: 72px;
+            background: white;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 40px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+        }
+
+        .brand img {
+            height: 48px;
+            width: auto;
+            display: block;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 30px;
+        }
+
+        .nav-link-custom {
+            text-decoration: none;
+            color: #1f2937;
+            font-weight: 700;
+            font-size: 16px;
+            padding: 24px 0;
+            transition: .2s;
+        }
+
+        .nav-link-custom:hover {
+            color: #2563eb;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .logout-btn {
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-weight: 700;
+        }
+
+        .page {
+            max-width: 1250px;
+            margin: 45px auto;
+            padding: 0 20px;
+        }
+
+        .title {
+            font-size: 48px;
+            font-weight: 900;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #64748b;
+            font-size: 22px;
+            margin-bottom: 40px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #dbe3ef;
+            border-radius: 18px;
+            overflow: hidden;
+            margin-bottom: 35px;
+            box-shadow: 0 2px 10px rgba(0,0,0,.05);
+        }
+
+        .panel-header {
+            padding: 24px 30px;
+            font-size: 28px;
+            font-weight: 900;
+            border-bottom: 1px solid #eef2f7;
+        }
+
+        .table {
+            margin: 0;
+        }
+
+        .table th {
+            background: #f8fafc;
+            text-transform: uppercase;
+            padding: 18px;
+            font-size: 14px;
+            font-weight: 900;
+            color: #374151;
+        }
+
+        .table td {
+            padding: 16px 18px;
+            vertical-align: middle;
+            font-size: 16px;
+        }
+
+        .day-title td {
+            background: #dbeafe;
+            color: #1e3a8a;
+            font-weight: 900;
+            font-size: 18px;
+        }
+
+        .grade-badge {
+            border-radius: 999px;
+            padding: 8px 14px;
+            font-weight: 800;
+            background: #dcfce7;
+            color: #15803d;
+            display: inline-block;
+        }
+
+        .absence-yes {
+            color: #16a34a;
+            font-weight: 800;
+        }
+
+        .absence-no {
+            color: #dc2626;
+            font-weight: 800;
+        }
+
+        .settings-card {
+            padding: 30px;
+        }
+
+        .form-control {
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .btn-save {
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-weight: 700;
+        }
+
+        .empty-row {
+            padding: 20px;
+            color: #64748b;
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="topbar">
+    <div class="topbar-left">
+        <div class="brand">
+            <img src="~/images/logo_school_diary.png" alt="School Diary" />
+        </div>
+
+        <div class="nav-links">
+            <a href="#home" class="nav-link-custom">Home</a>
+            <a href="#program" class="nav-link-custom">Schedule</a>
+            <a href="#grades" class="nav-link-custom">Grades</a>
+            <a href="#absences" class="nav-link-custom">Absences</a>
+            <a href="#settings" class="nav-link-custom">Profile</a>
+        </div>
+    </div>
+
+    <div class="topbar-right">
+        <form id="logoutForm"
+              asp-area="Identity"
+              asp-page="/Account/Logout"
+              asp-route-returnUrl="/Identity/Account/Login"
+              method="post"
+              class="m-0">
+
+            @Html.AntiForgeryToken()
+
+            <button type="button"
+                    class="btn btn-danger logout-btn"
+                    onclick="confirmLogout()">
+                Logout
+            </button>
+        </form>
+    </div>
+</header>
+
+<main class="page" id="home">
+    <h1 class="title">Student Profile</h1>
+
+    <div class="subtitle">
+        🎓 Welcome, @studentName!
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <section id="program" class="panel">
+        <div class="panel-header">📚 Class Schedule</div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Day</th>
+                <th>Period</th>
+                <th>Subject</th>
+                <th>Teacher</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @if (curriculum?.Entries != null && curriculum.Entries.Any())
+            {
+                foreach (var day in days)
+                {
+                    var dayEntries = curriculum.Entries
+                        .Where(e => e.DayOfWeek == day)
+                        .OrderBy(e => e.Period)
+                        .ToList();
+
+                    if (dayEntries.Any())
+                    {
+                        <tr class="day-title">
+                            <td colspan="4">@day</td>
+                        </tr>
+
+                        foreach (var e in dayEntries)
+                        {
+                            <tr>
+                                <td>@day</td>
+                                <td>Period @e.Period</td>
+                                <td>@e.Subject.Name</td>
+                                <td>@e.Teacher.User.FirstName @e.Teacher.User.LastName</td>
+                            </tr>
+                        }
+                    }
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="4" class="empty-row">
+                        No class schedule has been added.
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </section>
+
+    <section id="grades" class="panel">
+        <div class="panel-header">📘 Recent Grades</div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Grade</th>
+                <th>Date</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @if (grades.Any())
+            {
+                foreach (var g in grades)
+                {
+                    <tr>
+                        <td>@g.Subject.Name</td>
+                        <td>
+                            <span class="grade-badge">@g.Value.ToString("0.00")</span>
+                        </td>
+                        <td>@g.CreatedOn.ToString("dd.MM.yyyy")</td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3" class="empty-row">No grades available.</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </section>
+
+    <section id="absences" class="panel">
+        <div class="panel-header">🚫 Absences</div>
+
+        <table class="table">
+            <thead>
+            <tr>
+                <th>Date</th>
+                <th>Subject</th>
+                <th>Excused</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            @if (absences.Any())
+            {
+                foreach (var a in absences)
+                {
+                    <tr>
+                        <td>@a.Date.ToString("dd.MM.yyyy")</td>
+                        <td>@a.Subject.Name</td>
+                        <td>
+                            @if (a.IsExcused)
+                            {
+                                <span class="absence-yes">Yes</span>
+                            }
+                            else
+                            {
+                                <span class="absence-no">No</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="3" class="empty-row">No absences available.</td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </section>
+
+    <section id="settings" class="panel">
+        <div class="panel-header">⚙️ Profile Settings</div>
+
+        <div class="settings-card">
+            <form asp-controller="StudentUI"
+                  asp-action="UpdateProfile"
+                  method="post">
+
+                @Html.AntiForgeryToken()
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Email</label>
+                    <input name="email"
+                           value="@student?.User?.Email"
+                           class="form-control"
+                           type="email" />
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">New Password</label>
+                    <input name="newPassword"
+                           class="form-control"
+                           type="password"
+                           minlength="6" />
+                </div>
+
+                <button class="btn btn-primary btn-save">
+                    💾 Save Changes
+                </button>
+            </form>
+        </div>
+    </section>
+</main>
+
+<script>
+    function confirmLogout() {
+        const confirmed = confirm("Are you sure you want to log out?");
+
+        if (confirmed) {
+            document.getElementById("logoutForm").submit();
+        }
+    }
+</script>
+
+</body>
+</html>
