@@ -1,0 +1,41 @@
+﻿@using school_diary.Dtos
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Statistics";
+
+    var averages = ViewBag.SubjectAverages as IReadOnlyList<SubjectAverageDto> ?? new List<SubjectAverageDto>();
+}
+
+<h1>📊 Statistics</h1>
+
+<form asp-action="Statistics" method="get" class="row g-2 mb-4">
+    <div class="col-md-6">
+        <select name="schoolId" asp-items="ViewBag.Schools" class="form-select">
+            <option value="">All Schools</option>
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <button class="btn btn-primary w-100">Filter</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Subject</th>
+        <th>Average Grade</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var item in averages)
+    {
+        <tr>
+            <td>@item.SubjectName</td>
+            <td>@item.AverageGrade.ToString("0.00")</td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,59 @@
+﻿@model IReadOnlyList<school_diary.Dtos.CurriculumDto>
+@inject school_diary.Data.ApplicationDbContext Db
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Curricula";
+}
+
+<h2>📋 Curricula</h2>
+
+<a asp-action="AddCurriculum" class="btn btn-success mb-3">➕ Add Curriculum</a>
+
+<table class="table table-striped align-middle">
+    <thead>
+    <tr>
+        <th>Term</th>
+        <th>School</th>
+        <th>Class</th>
+        <th>Number of Periods</th>
+        <th style="width:180px;">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var c in Model)
+    {
+        var schoolName = Db.Schools
+            .Where(s => s.Id == c.SchoolId)
+            .Select(s => s.Name)
+            .FirstOrDefault();
+
+        <tr>
+            <td>@c.Term</td>
+            <td>@schoolName</td>
+            <td>@c.ClassName</td>
+            <td>@c.Entries.Count</td>
+            <td>
+                <a asp-action="EditCurriculum"
+                   asp-route-id="@c.Id"
+                   class="btn btn-primary btn-sm">
+                    ✏️
+                </a>
+
+                <form asp-action="DeleteCurriculum"
+                      asp-route-id="@c.Id"
+                      method="post"
+                      class="d-inline">
+                    @Html.AntiForgeryToken()
+
+                    <button class="btn btn-danger btn-sm"
+                            onclick="return confirm('Delete this curriculum?')">
+                        🗑️
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

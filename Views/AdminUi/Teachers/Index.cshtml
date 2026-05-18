@@ -1,0 +1,54 @@
+﻿@model List<school_diary.Controllers.AdminUiController.TeacherRowVm>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Teachers";
+}
+
+<h1>👩‍🏫 Teachers</h1>
+
+<p>
+    <a asp-action="AddTeacher" class="btn btn-success">➕ Add Teacher</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Subjects</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var t in Model)
+    {
+        <tr>
+            <td>@t.FullName</td>
+            <td>@t.Email</td>
+            <td>@string.Join(", ", t.SubjectNames)</td>
+            <td>
+                <a asp-action="EditTeacher"
+                   asp-route-id="@t.Id"
+                   class="btn btn-sm btn-primary">
+                    ✏️
+                </a>
+
+                <form asp-action="DeleteTeacher"
+                      asp-route-id="@t.Id"
+                      method="post"
+                      style="display:inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <button class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure?')">
+                        🗑️
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

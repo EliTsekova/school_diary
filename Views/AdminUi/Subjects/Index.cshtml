@@ -1,0 +1,85 @@
+﻿@model IReadOnlyList<school_diary.Dtos.SubjectDto>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Subjects";
+}
+
+<h1>📚 Subjects</h1>
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+<p>
+    <a asp-action="AddSubject"
+       class="btn btn-success">
+
+        ➕ Add Subject
+    </a>
+</p>
+
+<table class="table table-striped align-middle">
+
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th style="width:160px;">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+
+    @foreach (var subject in Model)
+    {
+        <tr>
+
+            <td>@subject.Name</td>
+
+            <td>
+
+                <div class="d-flex gap-2">
+
+                    <a asp-action="EditSubject"
+                       asp-route-id="@subject.Id"
+                       class="btn btn-sm btn-primary">
+
+                        ✏️
+                    </a>
+
+                    <form asp-action="DeleteSubject"
+                          asp-route-id="@subject.Id"
+                          method="post"
+                          style="display:inline">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-sm btn-danger"
+                                onclick="return confirm('Are you sure you want to delete this subject?')">
+
+                            🗑️
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </td>
+
+        </tr>
+    }
+
+    </tbody>
+
+</table>

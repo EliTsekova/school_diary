@@ -1,0 +1,17 @@
+﻿@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Add Subject";
+}
+
+<h2>➕ Add Subject</h2>
+
+<form asp-action="AddSubject" method="post" class="card card-form p-4">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">Name</label>
+        <input name="name" class="form-control" required />
+    </div>
+
+    <button class="btn btn-primary">💾 Save</button>
+</form>

@@ -1,0 +1,90 @@
+﻿@model IEnumerable<school_diary.Dtos.StudentDto>
+@inject school_diary.Services.ISchoolService SchoolService
+
+@{
+    ViewData["Title"] = "Students";
+
+    var schools = SchoolService.GetAllAsync().GetAwaiter().GetResult();
+    var dict = schools.ToDictionary(x => x.Id, x => x.Name);
+}
+
+<h2 class="mb-4">🎓 Students</h2>
+
+<div class="mb-3">
+    <a asp-action="AddStudent"
+       class="btn btn-success">
+        ➕ Add Student
+    </a>
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["Error"]
+    </div>
+}
+
+<table class="table table-striped align-middle">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>School</th>
+        <th>Class</th>
+        <th style="width:160px;">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var s in Model)
+    {
+        <tr>
+            <td>@s.FullName</td>
+
+            <td>@s.Email</td>
+
+            <td>
+                @(s.SchoolId.HasValue &&
+                  dict.TryGetValue(s.SchoolId.Value, out var n)
+                    ? n
+                    : "-")
+            </td>
+
+            <td>@s.ClassName</td>
+
+            <td>
+                <div class="d-flex gap-2">
+
+                    <a asp-action="EditStudent"
+                       asp-route-id="@s.Id"
+                       class="btn btn-primary btn-sm">
+                        <i class="fas fa-pen"></i>
+                    </a>
+
+                    <form asp-action="DeleteStudent"
+                          asp-route-id="@s.Id"
+                          method="post">
+
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-danger btn-sm"
+                                onclick="return confirm('Are you sure?')">
+
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+
+                </div>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

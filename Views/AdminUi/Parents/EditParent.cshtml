@@ -1,0 +1,49 @@
+﻿@model school_diary.Dtos.UpdateParentDto
+
+@{
+    ViewData["Title"] = "Edit Parent";
+}
+
+<h2>✏️ Edit Parent</h2>
+
+<form asp-controller="AdminUi"
+      asp-action="EditParent"
+      asp-route-id="@ViewBag.Id"
+      method="post">
+    @Html.AntiForgeryToken()
+
+    <div class="mb-3">
+        <label class="form-label">First Name:</label>
+        <input asp-for="FirstName" class="form-control" />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Last Name:</label>
+        <input asp-for="LastName" class="form-control" />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email:</label>
+        <input asp-for="Email" class="form-control" />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Linked Students:</label>
+        <select name="studentIds"
+                asp-items="ViewBag.Students"
+                class="form-select"
+                multiple>
+        </select>
+    </div>
+
+    <button type="submit" class="btn btn-primary">💾 Save</button>
+
+    <a asp-controller="AdminUi"
+       asp-action="Parents"
+       class="btn btn-secondary">
+        Cancel
+    </a>
+</form>

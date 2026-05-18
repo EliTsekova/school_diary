@@ -1,0 +1,109 @@
+﻿@using school_diary.Dtos
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Add Curriculum";
+
+    var subjects = ViewBag.Subjects as IReadOnlyList<SubjectDto> ?? new List<SubjectDto>();
+    var teachers = ViewBag.Teachers as IReadOnlyList<TeacherDto> ?? new List<TeacherDto>();
+    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+}
+
+<h2>➕ Add Curriculum</h2>
+
+<form asp-action="AddCurriculum" method="post" class="card card-form p-4">
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Term</label>
+        <input name="term" class="form-control" placeholder="E.g. First Term 2025/2026" required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">School</label>
+        <select name="schoolId" asp-items="ViewBag.Schools" class="form-select" required>
+            <option value="">-- School --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Class</label>
+        <select name="classId" asp-items="ViewBag.Classes" class="form-select" required>
+            <option value="">-- Class --</option>
+        </select>
+    </div>
+
+    <h5 class="mt-4 mb-3">Subjects and Teachers by Day</h5>
+
+    @foreach (var day in days)
+    {
+        <div class="card mb-3">
+            <div class="card-header fw-bold">@day</div>
+
+            <div class="card-body">
+                @for (var i = 1; i <= 7; i++)
+                {
+                    <div class="row mb-2 align-items-center">
+                        <div class="col-md-1 fw-bold">Period @i</div>
+
+                        <input type="hidden" name="days" value="@day" />
+                        <input type="hidden" name="periods" value="@i" />
+
+                        <div class="col-md-5">
+                            <select name="subjectIds" class="form-select subject-select">
+                                <option value="0">-- Subject --</option>
+                                @foreach (var subject in subjects)
+                                {
+                                    <option value="@subject.Id">@subject.Name</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-5">
+                            <select name="teacherIds" class="form-select teacher-select">
+                                <option value="0">-- Teacher --</option>
+                                @foreach (var teacher in teachers)
+                                {
+                                    <option value="@teacher.Id"
+                                            data-subjects="@string.Join(",", teacher.SubjectIds)">
+                                        @teacher.FullName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <button class="btn btn-primary mt-3">💾 Save</button>
+    <a asp-action="Curricula" class="btn btn-secondary mt-3">Back</a>
+</form>
+
+<script>
+    document.querySelectorAll(".subject-select").forEach(subjectSelect => {
+        subjectSelect.addEventListener("change", function () {
+            const row = this.closest(".row");
+            const teacherSelect = row.querySelector(".teacher-select");
+            const selectedSubjectId = this.value;
+
+            teacherSelect.value = "0";
+
+            Array.from(teacherSelect.options).forEach(option => {
+                if (option.value === "0") {
+                    option.hidden = false;
+                    return;
+                }
+
+                const subjects = option.dataset.subjects
+                    ? option.dataset.subjects.split(",")
+                    : [];
+
+                option.hidden = !subjects.includes(selectedSubjectId);
+            });
+        });
+    });
+</script>

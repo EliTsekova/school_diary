@@ -1,0 +1,208 @@
+﻿@using school_diary.Dtos
+@model school_diary.Models.Curriculum
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Edit Curriculum";
+
+    var subjects = ViewBag.Subjects as IReadOnlyList<SubjectDto> ?? new List<SubjectDto>();
+    var teachers = ViewBag.Teachers as IReadOnlyList<TeacherDto> ?? new List<TeacherDto>();
+    var days = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday" };
+
+    var entries = Model.Entries?.ToList() ?? new List<school_diary.Models.CurriculumEntry>();
+}
+
+<h2>✏️ Edit Curriculum</h2>
+
+<form asp-action="EditCurriculum"
+      asp-route-id="@Model.Id"
+      method="post"
+      class="card card-form p-4">
+
+    @Html.AntiForgeryToken()
+
+    <div asp-validation-summary="All" class="text-danger mb-3"></div>
+
+    <div class="mb-3">
+        <label class="form-label">Term</label>
+
+        <input name="term"
+               value="@Model.Term"
+               class="form-control"
+               required />
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">School</label>
+
+        <select name="schoolId"
+                asp-items="ViewBag.Schools"
+                class="form-select"
+                required>
+            <option value="">-- School --</option>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Class</label>
+
+        <select name="classId"
+                asp-items="ViewBag.Classes"
+                class="form-select"
+                required>
+            <option value="">-- Class --</option>
+        </select>
+    </div>
+
+    <h5 class="mt-4 mb-3">Subjects and Teachers by Day</h5>
+
+    @foreach (var day in days)
+    {
+        <div class="card mb-3">
+            <div class="card-header fw-bold">
+                @day
+            </div>
+
+            <div class="card-body">
+                @for (var i = 1; i <= 7; i++)
+                {
+                    var entry = entries.FirstOrDefault(e =>
+                        e.DayOfWeek == day &&
+                        e.Period == i);
+
+                    <div class="row mb-2 align-items-center">
+
+                        <div class="col-md-1 fw-bold">
+                            Period @i
+                        </div>
+
+                        <input type="hidden"
+                               name="days"
+                               value="@day" />
+
+                        <input type="hidden"
+                               name="periods"
+                               value="@i" />
+
+                        <div class="col-md-5">
+                            <select name="subjectIds"
+                                    class="form-select subject-select">
+
+                                <option value="0">-- Subject --</option>
+
+                                @foreach (var subject in subjects)
+                                {
+                                    if (entry?.SubjectId == subject.Id)
+                                    {
+                                        <option value="@subject.Id" selected>
+                                            @subject.Name
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@subject.Id">
+                                            @subject.Name
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div class="col-md-5">
+                            <select name="teacherIds"
+                                    class="form-select teacher-select">
+
+                                <option value="0">-- Teacher --</option>
+
+                                @foreach (var teacher in teachers)
+                                {
+                                    if (entry?.TeacherId == teacher.Id)
+                                    {
+                                        <option value="@teacher.Id"
+                                                data-subjects="@string.Join(",", teacher.SubjectIds)"
+                                                selected>
+                                            @teacher.FullName
+                                        </option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@teacher.Id"
+                                                data-subjects="@string.Join(",", teacher.SubjectIds)">
+                                            @teacher.FullName
+                                        </option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <button type="submit"
+            class="btn btn-primary mt-3">
+        💾 Save
+    </button>
+
+    <a asp-action="Curricula"
+       class="btn btn-secondary mt-3">
+        Back
+    </a>
+</form>
+
+<script>
+    function filterTeacherOptions(row, resetInvalidTeacher) {
+
+        const subjectSelect = row.querySelector(".subject-select");
+        const teacherSelect = row.querySelector(".teacher-select");
+
+        if (!subjectSelect || !teacherSelect)
+            return;
+
+        const selectedSubjectId = subjectSelect.value;
+
+        Array.from(teacherSelect.options).forEach(option => {
+
+            if (option.value === "0") {
+                option.hidden = false;
+                return;
+            }
+
+            const subjects = option.dataset.subjects
+                ? option.dataset.subjects.split(",")
+                : [];
+
+            option.hidden = !subjects.includes(selectedSubjectId);
+        });
+
+        if (resetInvalidTeacher) {
+
+            const selectedOption =
+                teacherSelect.options[teacherSelect.selectedIndex];
+
+            if (selectedOption && selectedOption.hidden) {
+                teacherSelect.value = "0";
+            }
+        }
+    }
+
+    document.querySelectorAll(".subject-select")
+        .forEach(subjectSelect => {
+
+            const row = subjectSelect.closest(".row");
+
+            filterTeacherOptions(row, false);
+
+            subjectSelect.addEventListener("change", function () {
+
+                const row = this.closest(".row");
+                const teacherSelect =
+                    row.querySelector(".teacher-select");
+
+                teacherSelect.value = "0";
+
+                filterTeacherOptions(row, true);
+            });
+        });
+</script>

@@ -1,0 +1,80 @@
+﻿@model school_diary.Dtos.CreateTeacherDto
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Add Teacher";
+}
+
+<h2>➕ Add Teacher</h2>
+
+<form asp-action="AddTeacher" method="post" class="card card-form p-4">
+    @Html.AntiForgeryToken()
+
+    @if (ViewData.ModelState.ErrorCount > 0)
+    {
+        <div asp-validation-summary="All" class="alert alert-danger mb-3"></div>
+    }
+
+    <div class="mb-3">
+        <label class="form-label">First Name</label>
+        <input asp-for="FirstName" class="form-control" required />
+        <span asp-validation-for="FirstName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Last Name</label>
+        <input asp-for="LastName" class="form-control" required />
+        <span asp-validation-for="LastName" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Email</label>
+        <input asp-for="Email" type="email" class="form-control" required />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label asp-for="Password" class="form-label">Password</label>
+        <input asp-for="Password" type="password" class="form-control" />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">School</label>
+        <select asp-for="SchoolId"
+                asp-items="ViewBag.Schools"
+                class="form-select"
+                required>
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Subjects</label>
+        <select asp-for="SubjectIds"
+                asp-items="ViewBag.Subjects"
+                class="form-select"
+                multiple
+                required
+                size="6">
+        </select>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Classes</label>
+        <select asp-for="ClassIds"
+                asp-items="ViewBag.Classes"
+                class="form-select"
+                multiple
+                size="6">
+        </select>
+        <small class="text-muted">
+            Hold Ctrl to select more than one class.
+        </small>
+    </div>
+
+    <button class="btn btn-primary">💾 Save</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

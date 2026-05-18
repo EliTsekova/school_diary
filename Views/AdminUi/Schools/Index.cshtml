@@ -1,0 +1,52 @@
+﻿@model IReadOnlyList<school_diary.Dtos.SchoolDto>
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Schools";
+}
+
+<h1>🏫 Schools</h1>
+
+<p>
+    <a asp-action="AddSchool" class="btn btn-success">➕ Add School</a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Address</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var school in Model)
+    {
+        <tr>
+            <td>@school.Name</td>
+            <td>@school.Address</td>
+            <td>
+                <a asp-action="EditSchool"
+                   asp-route-id="@school.Id"
+                   class="btn btn-sm btn-primary">
+                    ✏️
+                </a>
+
+                <form asp-action="DeleteSchool"
+                      asp-route-id="@school.Id"
+                      method="post"
+                      style="display:inline">
+
+                    @Html.AntiForgeryToken()
+
+                    <button class="btn btn-sm btn-danger"
+                            onclick="return confirm('Are you sure?')">
+                        🗑️
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

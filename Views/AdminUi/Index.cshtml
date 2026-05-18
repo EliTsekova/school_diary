@@ -1,0 +1,108 @@
+﻿@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Home";
+}
+
+<h1 class="text-center mb-4" style="color:#1f355b;">
+    <span style="color:#007bff">Welcome</span>, Admin!
+</h1>
+
+<div class="row g-3 mb-4">
+
+    <div class="col-md-3">
+        <div class="card card-form shadow-sm">
+            <div class="card-body text-center">
+                <h3>@ViewBag.StudentsCount</h3>
+                <p>Students</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card card-form shadow-sm">
+            <div class="card-body text-center">
+                <h3>@ViewBag.TeachersCount</h3>
+                <p>Teachers</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card card-form shadow-sm">
+            <div class="card-body text-center">
+                <h3>@ViewBag.ParentsCount</h3>
+                <p>Parents</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-3">
+        <div class="card card-form shadow-sm">
+            <div class="card-body text-center">
+                <h3>@ViewBag.SchoolsCount</h3>
+                <p>Schools</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<div class="d-flex justify-content-center gap-3 flex-wrap">
+
+    <a asp-controller="AdminUi"
+       asp-action="Students"
+       class="btn btn-light btn-lg">
+
+        👨‍🎓 Students
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Teachers"
+       class="btn btn-light btn-lg">
+
+        👩‍🏫 Teachers
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Parents"
+       class="btn btn-light btn-lg">
+
+        👪 Parents
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Directors"
+       class="btn btn-light btn-lg">
+
+        👔 Directors
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Schools"
+       class="btn btn-light btn-lg">
+
+        🏫 Schools
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Subjects"
+       class="btn btn-light btn-lg">
+
+        📚 Subjects
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Curricula"
+       class="btn btn-light btn-lg">
+
+        📋 Curriculum
+    </a>
+
+    <a asp-controller="AdminUi"
+       asp-action="Statistics"
+       class="btn btn-light btn-lg">
+
+        📊 Statistics
+    </a>
+
+</div>

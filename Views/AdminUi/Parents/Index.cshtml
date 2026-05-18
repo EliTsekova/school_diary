@@ -1,0 +1,61 @@
+﻿@model school_diary.Controllers.AdminUiController.ParentsIndexVm
+
+@{
+    ViewData["Title"] = "Parents";
+}
+
+<h1>👪 Parents</h1>
+
+<p>
+    <a asp-controller="AdminUi"
+       asp-action="AddParent"
+       class="btn btn-success">
+        ➕ Add Parent
+    </a>
+</p>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Children</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var parent in Model.Parents)
+    {
+        <tr>
+            <td>@parent.FullName</td>
+            <td>@parent.Email</td>
+            <td>
+                @string.Join(", ", parent.StudentNames ?? new List<string>())
+            </td>
+            <td>
+                <a asp-controller="AdminUi"
+                   asp-action="EditParent"
+                   asp-route-id="@parent.Id"
+                   class="btn btn-sm btn-primary">
+                    ✏️
+                </a>
+
+                <form asp-controller="AdminUi"
+                      asp-action="DeleteParent"
+                      asp-route-id="@parent.Id"
+                      method="post"
+                      onsubmit="return confirm('Are you sure?')"
+                      style="display:inline;">
+                    @Html.AntiForgeryToken()
+
+                    <button type="submit"
+                            class="btn btn-sm btn-danger">
+                        🗑️
+                    </button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>

@@ -1,0 +1,89 @@
+﻿@model IEnumerable<school_diary.Dtos.DirectorDto>
+
+@inject school_diary.Data.ApplicationDbContext Db
+
+@{
+    Layout = "_AdminLayout";
+    ViewData["Title"] = "Directors";
+
+    var directorsData = Db.Directors
+        .Select(x => new
+        {
+            x.Id,
+            FullName = x.User.FirstName + " " + x.User.LastName,
+            Email = x.User.Email,
+            School = x.School.Name
+        })
+        .ToList();
+}
+
+<h1>👔 Directors</h1>
+
+@if (TempData["DirectorError"] != null)
+{
+    <div class="alert alert-danger">
+        @TempData["DirectorError"]
+    </div>
+}
+
+@if (TempData["DirectorSuccess"] != null)
+{
+    <div class="alert alert-success">
+        @TempData["DirectorSuccess"]
+    </div>
+}
+
+<p>
+    <a asp-controller="AdminUi"
+       asp-action="AddDirector"
+       class="btn btn-success">
+        ➕ Add Director
+    </a>
+</p>
+
+<table class="table table-striped align-middle">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Email</th>
+        <th>School</th>
+        <th style="width:160px;">Actions</th>
+    </tr>
+    </thead>
+
+    <tbody>
+    @foreach (var d in directorsData)
+    {
+        <tr>
+            <td>@d.FullName</td>
+            <td>@d.Email</td>
+            <td>@d.School</td>
+
+            <td>
+                <div class="d-flex gap-2">
+                    <a asp-controller="AdminUi"
+                       asp-action="EditDirector"
+                       asp-route-id="@d.Id"
+                       class="btn btn-sm btn-primary">
+                        ✏️
+                    </a>
+
+                    <form asp-controller="AdminUi"
+                          asp-action="DeleteDirector"
+                          asp-route-id="@d.Id"
+                          method="post"
+                          class="d-inline"
+                          onsubmit="return confirm('Are you sure you want to delete this director?')">
+                        @Html.AntiForgeryToken()
+
+                        <button type="submit"
+                                class="btn btn-sm btn-danger">
+                            🗑️
+                        </button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
