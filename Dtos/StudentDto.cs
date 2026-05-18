@@ -4,5 +4,6 @@ public record StudentDto(
     int    Id,
     string FullName,
     string Email,
-    string ClassName,
-    int    SchoolId);
+    string? ClassName,
+    int?    SchoolId);
+    

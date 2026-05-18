@@ -1,11 +1,26 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿// Dtos/CreateStudentDto.cs
+using System.ComponentModel.DataAnnotations;
 
-namespace school_diary.Dtos;
+namespace school_diary.Dtos
+{
+    public record CreateStudentDto
+    {
+        [Required, StringLength(100)]
+        public string FirstName { get; init; } = default!;
 
-public record CreateStudentDto(
-    [Required] string FirstName,
-    [Required] string LastName,
-    [Required] string ClassName,
-    [Required, EmailAddress] string Email,
-    [Required] int SchoolId
-);
+        [Required, StringLength(100)]
+        public string LastName { get; init; } = default!;
+
+        [Required, EmailAddress]
+        public string Email { get; init; } = default!;
+
+        [Required]
+        public int SchoolId { get; init; }
+
+        [Required, StringLength(10)]
+        public string ClassName { get; init; } = default!;
+
+        [Required, StringLength(100, MinimumLength = 6)]
+        public string Password { get; init; } = default!;
+    }
+}
