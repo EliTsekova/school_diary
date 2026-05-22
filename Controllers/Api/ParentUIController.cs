@@ -21,7 +21,10 @@ public class ParentUIController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var userId = _userManager.GetUserId(User)!;
+        var userId = _userManager.GetUserId(User);
+
+        if (string.IsNullOrWhiteSpace(userId))
+            return Unauthorized();
 
         var parent = await _db.Parents
             .Include(p => p.User)
@@ -41,7 +44,9 @@ public class ParentUIController : Controller
             .ToList();
 
         ViewBag.Parent = parent;
-        ViewBag.Children = parent.ParentStudents.Select(ps => ps.Student).ToList();
+        ViewBag.Children = parent.ParentStudents
+            .Select(ps => ps.Student)
+            .ToList();
 
         ViewBag.Grades = await _db.Grades
             .AsNoTracking()
@@ -62,5 +67,65 @@ public class ParentUIController : Controller
             .ToListAsync();
 
         return View();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfile(
+        string fullName,
+        string email,
+        string? newPassword,
+        string? confirmPassword)
+    {
+        if (string.IsNullOrWhiteSpace(fullName) || string.IsNullOrWhiteSpace(email))
+        {
+            TempData["Error"] = "Name and email are required.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (!string.IsNullOrWhiteSpace(newPassword) && newPassword != confirmPassword)
+        {
+            TempData["Error"] = "The passwords do not match.";
+            return RedirectToAction(nameof(Index));
+        }
+
+        var user = await _userManager.GetUserAsync(User);
+
+        if (user == null)
+            return Unauthorized();
+
+        var names = fullName.Trim()
+            .Split(' ', 2, StringSplitOptions.RemoveEmptyEntries);
+
+        user.FirstName = names.ElementAtOrDefault(0) ?? "";
+        user.LastName = names.ElementAtOrDefault(1) ?? "";
+        user.Email = email.Trim();
+        user.UserName = email.Trim();
+        user.NormalizedEmail = _userManager.NormalizeEmail(email.Trim());
+        user.NormalizedUserName = _userManager.NormalizeName(email.Trim());
+        user.Role = Role.Parent;
+
+        var updateResult = await _userManager.UpdateAsync(user);
+
+        if (!updateResult.Succeeded)
+        {
+            TempData["Error"] = string.Join(" ", updateResult.Errors.Select(e => e.Description));
+            return RedirectToAction(nameof(Index));
+        }
+
+        if (!string.IsNullOrWhiteSpace(newPassword))
+        {
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var passwordResult = await _userManager.ResetPasswordAsync(user, token, newPassword);
+
+            if (!passwordResult.Succeeded)
+            {
+                TempData["Error"] = string.Join(" ", passwordResult.Errors.Select(e => e.Description));
+                return RedirectToAction(nameof(Index));
+            }
+        }
+
+        TempData["Success"] = "Profile updated successfully.";
+        return RedirectToAction(nameof(Index));
     }
 }
